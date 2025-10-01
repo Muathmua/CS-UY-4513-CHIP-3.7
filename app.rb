@@ -41,6 +41,18 @@ class WordGuesserApp < Sinatra::Base
   post '/guess' do
     params[:guess].to_s[0]
     ### YOUR CODE HERE ###
+    # 
+    letter = params[:guess].to_s[0] 
+
+    begin
+      letter_state = @game.guess(letter)
+      if letter_state == false
+        flash[:message] = "You have already used that letter."  
+      end
+    rescue ArgumentError
+      flash[:message] = "Invalid guess."
+    end
+
     redirect '/show'
   end
 
@@ -50,17 +62,21 @@ class WordGuesserApp < Sinatra::Base
   # Notice that the show.erb template expects to use the instance variables
   # wrong_guesses and word_with_guesses from @game.
   get '/show' do
-    ### YOUR CODE HERE ###
-    erb :show # You may change/remove this line
+    game_state = @game.check_win_or_lose
+
+    return redirect '/win'  if game_state == :win
+    return redirect '/lose' if game_state == :lose
+    @wrong_guesses     = @game.wrong_guesses
+    @word_with_guesses = @game.word_with_guesses
+
+    erb :show
   end
 
   get '/win' do
-    ### YOUR CODE HERE ###
-    erb :win # You may change/remove this line
+    return redirect '/show' unless @game.check_win_or_lose == :win
   end
 
   get '/lose' do
-    ### YOUR CODE HERE ###
-    erb :lose # You may change/remove this line
+    return redirect '/show' unless @game.check_win_or_lose == :lose
   end
 end
